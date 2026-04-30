@@ -29,6 +29,7 @@ type Config struct {
 	SpSecret       string
 	SpTenant       string
 	Debug          bool
+	SendEnabled    bool
 }
 
 type Token struct {
@@ -37,6 +38,7 @@ type Token struct {
 
 func main() {
 	debugVar := false
+	sendEnabledVar := true
 
 	orgEnv := os.Getenv("ORGANIZATION")
 	projectEnv := os.Getenv("PROJECT")
@@ -48,9 +50,14 @@ func main() {
 	spSecretEnv := os.Getenv("SP_SECRET")
 	spTenantEnv := os.Getenv("SP_TENANT")
 	debugEnv := os.Getenv("DEBUG")
+	enabledEnv := os.Getenv("SENDING_ENABLED")
 
 	if strings.ToLower(debugEnv) == "true" {
 		debugVar = true
+	}
+
+	if strings.ToLower(enabledEnv) == "false" {
+		sendEnabledVar = false
 	}
 
 	var org string
@@ -82,6 +89,9 @@ func main() {
 
 	var debug bool
 	flag.BoolVar(&debug, "debug", debugVar, "Enable debug mode")
+
+	var sendEnabled bool
+	flag.BoolVar(&sendEnabled, "enabled", sendEnabledVar, "Enable sending alerts")
 
 	flag.Parse()
 
@@ -115,6 +125,7 @@ func main() {
 		SpSecret:       spSecret,
 		SpTenant:       spTenant,
 		Debug:          debug,
+		SendEnabled:    sendEnabled,
 	}
 
 	srv := &http.Server{

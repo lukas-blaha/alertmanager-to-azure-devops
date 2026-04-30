@@ -54,19 +54,29 @@ func (app *Config) GetTemplate(w http.ResponseWriter, r *http.Request) {
 
 	if data.Alerts[0].Status == "firing" {
 		if ticket == (Ticket{}) {
-			fmt.Println("Creating ticket for grafana alert:", data.Alerts[0].Fingerprint)
-			err = app.CreateTicket(s)
-			if err != nil {
-				log.Println("Cannot create ticket:", err)
+			if app.SendEnabled {
+				fmt.Println("Creating ticket for grafana alert:", data.Alerts[0].Fingerprint)
+				err = app.CreateTicket(s)
+				if err != nil {
+					log.Println("Cannot create ticket:", err)
+					return
+				}
+			} else {
+				log.Println("Ticket creation is disabled. Skipping ticket creation.")
 				return
 			}
 		}
 	} else if data.Alerts[0].Status == "resolved" {
 		if ticket != (Ticket{}) {
-			fmt.Println("Closing ticket for grafana alert:", data.Alerts[0].Fingerprint)
-			err = app.CloseTicket(ticket)
-			if err != nil {
-				log.Println("Cannot close ticket:", err)
+			if app.SendEnabled {
+				fmt.Println("Closing ticket for grafana alert:", data.Alerts[0].Fingerprint)
+				err = app.CloseTicket(ticket)
+				if err != nil {
+					log.Println("Cannot close ticket:", err)
+					return
+				}
+			} else {
+				log.Println("Ticket closing is disabled. Skipping ticket closing.")
 				return
 			}
 		}
