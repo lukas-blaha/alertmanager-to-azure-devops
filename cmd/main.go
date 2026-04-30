@@ -21,6 +21,8 @@ type Config struct {
 	Org            string
 	Project        string
 	WorkItem       string
+	GrafanaToken   string
+	GrafanaUrl     string
 	CreateTemplate *template.Template
 	CloseTemplate  string
 	Pat            string
@@ -43,6 +45,8 @@ func main() {
 	orgEnv := os.Getenv("ORGANIZATION")
 	projectEnv := os.Getenv("PROJECT")
 	workItemEnv := os.Getenv("WORKITEM")
+	grafanaTokenEnv := os.Getenv("GRAFANA_API_TOKEN")
+	grafanaUrlEnv := os.Getenv("GRAFANA_URL")
 	createTmplEnv := os.Getenv("CREATE_TEMPLATE")
 	closeTmplEnv := os.Getenv("CLOSE_TEMPLATE")
 	tokenEnv := os.Getenv("TOKEN")
@@ -68,6 +72,12 @@ func main() {
 
 	var workItem string
 	flag.StringVar(&workItem, "workitem", workItemEnv, "Azure DevOps work item name")
+
+	var grafanaToken string
+	flag.StringVar(&grafanaToken, "grafana-token", grafanaTokenEnv, "Grafana API token")
+
+	var grafanaUrl string
+	flag.StringVar(&grafanaUrl, "grafana-url", grafanaUrlEnv, "Grafana URL")
 
 	var createTmplPath string
 	flag.StringVar(&createTmplPath, "create-template", createTmplEnv, "Path to payload transformation template to create ticket")
@@ -104,6 +114,11 @@ func main() {
 		log.Panicf("Missing required flags or environment variables. See settings below:\n\n%s", msg)
 	}
 
+	if grafanaToken == "" || grafanaUrl == "" {
+		msg := "env GRAFANA_API_TOKEN or -grafana-token\nenv GRAFANA_URL or -grafana-url"
+		log.Panicf("To ensure correct labels appear in the dashboard link, a Grafana API token must be provided for authentication. See settings below:\n\n%s", msg)
+	}
+
 	createTmpl, err := parser.New(createTmplPath)
 	if err != nil {
 		log.Panic(err)
@@ -118,6 +133,8 @@ func main() {
 		Org:            org,
 		Project:        project,
 		WorkItem:       workItem,
+		GrafanaToken:   grafanaToken,
+		GrafanaUrl:     grafanaUrl,
 		CreateTemplate: createTmpl,
 		CloseTemplate:  string(closeTmpl),
 		Pat:            pat,
@@ -133,6 +150,7 @@ func main() {
 		Handler: app.routes(),
 	}
 
+	fmt.Println("Server version 0.2.2")
 	fmt.Println("Server is running on port", webPort)
 
 	if err := srv.ListenAndServe(); err != nil {

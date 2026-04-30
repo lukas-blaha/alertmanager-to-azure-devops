@@ -7,8 +7,6 @@ import (
 	"strings"
 	"text/template"
 	"time"
-
-	amt "github.com/prometheus/alertmanager/template"
 )
 
 func New(path string) (*template.Template, error) {
@@ -46,10 +44,10 @@ func New(path string) (*template.Template, error) {
 	return t, err
 }
 
-func Render(t *template.Template, data amt.Data) (string, error) {
+func Render(t *template.Template, templateData TemplateData) (string, error) {
 	var b bytes.Buffer
 
-	err := t.Execute(&b, data)
+	err := t.Execute(&b, templateData)
 	if err != nil {
 		return "", err
 	}
